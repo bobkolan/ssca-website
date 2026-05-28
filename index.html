@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snooker & Cuesports Amsterdam | SSCA</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome voor iconen -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Onze eigen CSS styling -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-[#f4f1ea] text-stone-800 font-sans min-h-screen flex flex-col selection:bg-amber-200">
+
+    <!-- HOOFD-NAVIGATIEBALK -->
+    <header class="gold-gradient shadow-2xl border-b border-[#785b20] sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 flex justify-between items-center h-24 relative">
+            
+            <!-- Club Embleem -->
+            <div class="flex items-center space-x-2 cursor-pointer z-10 py-2" onclick="showPage('home')">
+                <div class="relative w-24 h-24 bg-[#0a2316] border-4 border-[#ecd292] rounded-full flex flex-col items-center justify-center shadow-2xl -mb-6 mt-2">
+                    <div class="absolute w-20 h-1 bg-[#8a6828] rotate-45 transform rounded"></div>
+                    <div class="absolute w-20 h-1 bg-[#8a6828] -rotate-45 transform rounded"></div>
+                    <div class="w-6 h-6 rounded-full bg-radial from-red-400 to-red-700 shadow-inner z-10 border border-red-900 -mt-1 flex items-center justify-center">
+                        <div class="w-1.5 h-1.5 bg-white opacity-60 rounded-full -mt-2 -ml-2"></div>
+                    </div>
+                    <span class="text-2xl font-black tracking-tighter text-[#ecd292] z-10 -mt-1 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">SSCA</span>
+                    <span class="text-[7px] text-white font-bold tracking-widest uppercase z-10 bg-[#06150d] px-1 rounded border border-[#ecd292]/30">AMSTERDAM</span>
+                </div>
+            </div>
+            
+            <!-- Navigatiemenu -->
+            <nav class="hidden md:flex space-x-1 font-bold text-[#0c261a] text-sm tracking-wider uppercase items-center">
+                <a href="#" onclick="showPage('home')" class="nav-btn px-3 py-1 border-b-2 border-[#0c261a] hover:text-white transition">HOOFDPAGINA</a>
+                <span class="text-[#785b20]">•</span>
+                <a href="#" onclick="showPage('about')" class="nav-btn px-3 py-1 border-b-2 border-transparent hover:text-white transition">OVER ONS</a>
+                <span class="text-[#785b20]">•</span>
+                <a href="#" onclick="showPage('calendar')" class="nav-btn px-3 py-1 border-b-2 border-transparent hover:text-white transition">TOERNOOIEN</a>
+                <span class="text-[#785b20]">•</span>
+                <a href="#" onclick="showPage('scores')" class="nav-btn px-3 py-1 border-b-2 border-transparent hover:text-white transition">SCOREBOARD</a>
+                <span class="text-[#785b20]">•</span>
+                <a href="#" onclick="showPage('contact')" class="nav-btn px-3 py-1 border-b-2 border-transparent hover:text-white transition">CONTACT & RESERVEREN</a>
+                <span class="text-[#785b20]">•</span>
+                <a href="#" onclick="showPage('login')" id="adminNavBtn" class="px-3 py-1 text-stone-700 hover:text-red-900 transition text-xs"><i class="fa-solid fa-lock"></i> BEHEER</a>
+            </nav>
+
+            <button class="md:hidden text-[#0c261a] focus:outline-none font-bold" onclick="toggleMobileMenu()">
+                <i class="fa-solid fa-bars text-2xl"></i>
+            </button>
+        </div>
+
+        <!-- Mobiel Dropdown Menu -->
+        <div id="mobileMenu" class="hidden bg-[#0c261a] text-[#ecd292] border-t border-[#785b20] flex flex-col p-4 space-y-3 md:hidden font-bold">
+            <a href="#" onclick="showPage('home')">HOOFDPAGINA</a>
+            <a href="#" onclick="showPage('about')">OVER ONS</a>
+            <a href="#" onclick="showPage('calendar')">TOERNOOIEN</a>
+            <a href="#" onclick="showPage('scores')">SCOREBOARD</a>
+            <a href="#" onclick="showPage('contact')">CONTACT & RESERVEREN</a>
+            <a href="#" onclick="showPage('login')">BEHEER LOGIN</a>
+        </div>
+    </header>
+
+    <!-- ADMIN BARKNOPPEN -->
+    <div id="adminEditorBar" class="hidden bg-emerald-900 text-white px-4 py-2 text-center text-xs font-bold space-x-4 border-b border-emerald-950">
+        <span><i class="fa-solid fa-screwdriver-wrench text-amber-400 mr-1"></i> Beheerdersmodus Actief:</span>
+        <button onclick="toggleGlobalEditMode()" id="editModeToggleBtn" class="bg-amber-500 hover:bg-amber-600 text-stone-900 px-3 py-1 rounded transition cursor-pointer">
+            <i class="fa-solid fa-pen-to-square mr-1"></i> Bewerk Paginateksten (Word Editor)
+        </button>
+        <button onclick="showPage('adminDashboard')" class="bg-stone-800 hover:bg-stone-700 text-amber-400 px-3 py-1 rounded transition cursor-pointer">
+            <i class="fa-solid fa-list-check mr-1"></i> Open Agenda/Score Beheer
+        </button>
+        <span id="syncStatus" class="text-emerald-300 italic ml-2"></span>
+    </div>
+
+    <!-- INHOUD VAN DE WEBSITE -->
+    <main class="flex-grow w-full pb-16">
+
+        <!-- 1. STARTPAGINA (HOME) -->
+        <section id="home" class="page active space-y-4">
+            <div class="hero-vignette w-full h-[320px] md:h-[460px] overflow-hidden flex items-center justify-center bg-stone-200">
+                <img src="IMG-20260330-WA0007.jpg" alt="SSCA Club Leden" class="w-full h-full object-cover object-center max-w-7xl mx-auto">
+            </div>
+
+            <div class="max-w-4xl mx-auto text-center px-4 space-y-4 mt-6">
+                <h1 id="editable_home_title" class="text-3xl md:text-5xl font-black text-[#0f3422] tracking-tight">Laden...</h1>
+                <div id="editable_home_text" class="text-sm md:text-base text-stone-700 leading-relaxed font-medium prose max-w-none">Informatie wordt opgehaald...</div>
+            </div>
+
+            <div class="max-w-6xl mx-auto px-4 pt-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div onclick="showPage('calendar')" class="menu-card rounded-xl p-6 text-center cursor-pointer flex flex-col items-center justify-between min-h-[160px]">
+                        <div class="text-[#b89753] text-3xl mb-2"><i class="fa-solid fa-calendar-check"></i></div>
+                        <span class="text-[#ecd292] font-black text-xs md:text-sm tracking-widest uppercase leading-tight">Bekijk ons volgende toernooi</span>
+                    </div>
+                    <div onclick="showPage('contact')" class="menu-card rounded-xl p-6 text-center cursor-pointer flex flex-col items-center justify-between min-h-[160px]">
+                        <div class="text-[#b89753] text-3xl mb-2"><i class="fa-solid fa-circle text-red-600 border border-white/20 rounded-full shadow-md"></i></div>
+                        <span class="text-[#ecd292] font-black text-xs md:text-sm tracking-widest uppercase leading-tight">Reserveer een tafel</span>
+                    </div>
+                    <div onclick="showPage('about')" class="menu-card rounded-xl p-6 text-center cursor-pointer flex flex-col items-center justify-between min-h-[160px]">
+                        <div class="text-[#b89753] text-3xl mb-2"><i class="fa-solid fa-graduation-cap"></i></div>
+                        <span class="text-[#ecd292] font-black text-xs md:text-sm tracking-widest uppercase leading-tight">Leer het spel</span>
+                    </div>
+                    <div onclick="showPage('scores')" class="menu-card rounded-xl p-6 text-center cursor-pointer flex flex-col items-center justify-between min-h-[160px]">
+                        <div class="text-[#b89753] text-3xl mb-2"><i class="fa-solid fa-trophy"></i></div>
+                        <span class="text-[#ecd292] font-black text-xs md:text-sm tracking-widest uppercase leading-tight">Leiderbord & Scores</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. OVER ONS PAGINA -->
+        <section id="about" class="page max-w-4xl mx-auto px-4 mt-8 space-y-6">
+            <div class="border-b-2 border-[#b89753] pb-3">
+                <h2 id="editable_about_title" class="text-3xl font-black text-[#0f3422] uppercase tracking-wide"></h2>
+            </div>
+            <div class="grid md:grid-cols-3 gap-6 items-start">
+                <div class="md:col-span-2 space-y-4 bg-white p-6 rounded-xl shadow-md border border-stone-200">
+                    <div id="editable_about_text" class="text-stone-700 text-sm md:text-base leading-relaxed prose max-w-none"></div>
+                </div>
+                <div class="bg-stone-900 text-[#ecd292] p-6 rounded-xl border-2 border-[#b89753] space-y-4 shadow-xl">
+                    <h3 class="font-bold text-lg border-b border-stone-800 pb-2 text-center uppercase">Onze Club</h3>
+                    <div class="text-center space-y-2">
+                        <p class="text-xs text-stone-400">Opgericht</p>
+                        <p class="text-xl font-black text-white">1984</p>
+                        <p class="text-xs text-stone-400 mt-2">Aantal Riley Tafels</p>
+                        <p class="text-xl font-black text-white">8 Professionele Tafels</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. TOERNOOIEN & AGENDA PAGINA -->
+        <section id="calendar" class="page max-w-4xl mx-auto px-4 mt-8 space-y-6">
+            <div class="border-b-2 border-[#b89753] pb-3">
+                <h2 class="text-3xl font-black text-[#0f3422] uppercase tracking-wide"><i class="fa-solid fa-calendar-days mr-2 text-[#b89753]"></i>Wedstrijdschema & Toernooien</h2>
+            </div>
+            <div id="calendarList" class="space-y-4"></div>
+        </section>
+
+        <!-- 4. RANGLIJST (SCOREBOARD) PAGINA -->
+        <section id="scores" class="page max-w-4xl mx-auto px-4 mt-8 space-y-6">
+            <div class="border-b-2 border-[#b89753] pb-3">
+                <h2 class="text-3xl font-black text-[#0f3422] uppercase tracking-wide"><i class="fa-solid fa-ranking-star mr-2 text-[#b89753]"></i>Actueel Leiderbord</h2>
+            </div>
+            <div class="bg-stone-900 text-white rounded-xl overflow-hidden shadow-2xl border-2 border-[#b89753]">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-[#0c261a] text-[#ecd292] uppercase text-xs font-bold tracking-wider border-b border-[#b89753]">
+                            <th class="p-4 text-center w-20">Rank</th>
+                            <th class="p-4">Speler Naam</th>
+                            <th class="p-4 text-center">Gewonnen</th>
+                            <th class="p-4 text-center">Hoogste Break</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scoresTableBody" class="divide-y divide-stone-800 text-stone-200"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 5. CONTACT & RESERVEREN PAGINA -->
+        <section id="contact" class="page max-w-4xl mx-auto px-4 mt-8 space-y-6">
+            <div class="border-b-2 border-[#b89753] pb-3">
+                <h2 class="text-3xl font-black text-[#0f3422] uppercase tracking-wide"><i class="fa-solid fa-envelope mr-2 text-[#b89753]"></i>Contact & Informatie</h2>
+            </div>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-stone-900 text-stone-200 p-6 rounded-xl border-2 border-[#b89753] space-y-4 shadow-xl">
+                    <h3 class="text-xl font-bold text-[#ecd292]">Clubhuis Gegevens</h3>
+                    <div id="editable_contact_info" class="space-y-4 text-sm prose prose-invert max-w-none"></div>
+                </div>
+                <div class="bg-white text-stone-800 p-6 rounded-xl border border-stone-200 space-y-4 shadow-md">
+                    <h3 class="text-xl font-bold text-[#0f3422] uppercase tracking-wider">Openingstijden</h3>
+                    <div id="editable_contact_hours" class="text-sm space-y-2 prose max-w-none"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. ADMIN LOGIN -->
+        <section id="login" class="page max-w-md mx-auto bg-stone-900 text-white p-8 rounded-xl border-2 border-[#b89753] shadow-2xl my-12">
+            <h2 class="text-2xl font-black text-center text-[#ecd292] uppercase tracking-wide"><i class="fa-solid fa-lock mr-2"></i>Beheer Inloggen</h2>
+            <div id="loginError" class="text-red-400 text-xs hidden text-center font-bold mt-2"></div>
+            <div class="space-y-4 mt-4">
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest text-[#b89753] font-bold mb-1">Gebruikersnaam</label>
+                    <input type="text" id="username" class="w-full p-2.5 rounded bg-stone-950 border border-stone-700 focus:outline-none focus:border-[#b89753] text-sm text-white">
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest text-[#b89753] font-bold mb-1">Wachtwoord</label>
+                    <input type="password" id="password" class="w-full p-2.5 rounded bg-stone-950 border border-stone-700 focus:outline-none focus:border-[#b89753] text-sm text-white">
+                </div>
+                <button onclick="handleLogin()" class="w-full gold-gradient text-[#0c261a] font-black p-2.5 rounded shadow-lg uppercase tracking-wider text-xs cursor-pointer">Inloggen</button>
+            </div>
+        </section>
+
+        <!-- 7. ADMIN DASHBOARD -->
+        <section id="adminDashboard" class="page max-w-4xl mx-auto px-4 mt-8 space-y-6">
+            <div class="flex justify-between items-center border-b-2 border-emerald-600 pb-3">
+                <div>
+                    <h2 class="text-3xl font-black text-emerald-800 uppercase">Lijsten Beheren</h2>
+                    <p class="text-xs text-stone-600">Voeg handmatig toernooien en spelersscores toe aan de cloud-database.</p>
+                </div>
+                <button onclick="handleLogout()" class="bg-red-700 hover:bg-red-800 px-4 py-2 text-xs uppercase font-bold tracking-wider rounded text-white cursor-pointer">Uitloggen</button>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-stone-900 text-white p-6 rounded-xl border border-stone-700 space-y-3 shadow-xl">
+                    <h3 class="text-md font-bold text-[#ecd292] uppercase border-b border-stone-800 pb-2"><i class="fa-solid fa-plus mr-1"></i> Toernooi Toevoegen</h3>
+                    <input type="text" id="eventTitle" placeholder="Toernooinaam" class="w-full p-2 rounded bg-stone-950 border border-stone-700 text-xs">
+                    <input type="date" id="eventDate" class="w-full p-2 rounded bg-stone-950 border border-stone-700 text-xs text-stone-300">
+                    <input type="text" id="eventStatus" placeholder="Status (bijv. Inschrijving geopend)" class="w-full p-2 rounded bg-stone-950 border border-stone-700 text-xs">
+                    <button onclick="addCalendarEvent()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-4 py-2 rounded text-xs w-full cursor-pointer">Publiceren naar Cloud</button>
+                </div>
+
+                <div class="bg-stone-900 text-white p-6 rounded-xl border border-stone-700 space-y-3 shadow-xl">
+                    <h3 class="text-md font-bold text-[#ecd292] uppercase border-b border-stone-800 pb-2"><i class="fa-solid fa-user-edit mr-1"></i> Score / Speler Bijwerken</h3>
+                    <input type="text" id="playerName" placeholder="Naam speler" class="w-full p-2 rounded bg-stone-950 border border-stone-700 text-xs">
+                    <input type="number" id="playerWins" placeholder="Aantal Gewonnen Partijen" class="w-full p-2 rounded bg-stone-950 border border-stone-700 text-xs">
+                    <input type="number" id="playerBreak" placeholder="Hoogste Break" class="w-full p-2 rounded bg-stone-950 border border-stone-700 text-xs">
+                    <button onclick="addOrUpdatePlayer()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-4 py-2 rounded text-xs w-full cursor-pointer">Opslaan naar Cloud</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-[#0a2316] text-[#ecd292]/60 py-6 border-t-2 border-[#b89753] mt-auto">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-3 text-xs">
+            <p>Copyright SSCA 2026 - Alle rechten voorbehouden</p>
+            <div class="flex space-x-4 font-bold text-[#ecd292]">
+                <a href="#" onclick="showPage('about')" class="hover:underline">Over ons</a>
+                <a href="#" onclick="showPage('calendar')" class="hover:underline">Toernooien</a>
+                <a href="#" onclick="showPage('contact')" class="hover:underline">Contact</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Onze eigen JavaScript logica -->
+    <script src="app.js"></script>
+</body>
+</html>
