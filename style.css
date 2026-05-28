@@ -1,0 +1,51 @@
+/* Pagina-wissel logica */
+.page { 
+    display: none; 
+}
+.page.active { 
+    display: block; 
+}
+
+/* De gouden metallic verloopkleur */
+.gold-gradient {
+    background: linear-gradient(180deg, #dfc48c 0%, #b89753 50%, #967534 100%);
+}
+
+/* Fotovignet effect voor de clubfoto op de homepage */
+.hero-vignette {
+    position: relative;
+}
+.hero-vignette::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, transparent 40%, #f4f1ea 95%);
+    pointer-events: none;
+}
+
+/* Styling voor de vier grote menukaarten op de homepage */
+.menu-card {
+    background: linear-gradient(135deg, #1c1c16 0%, #0d0e0a 100%);
+    border: 2px solid #b89753;
+    box-shadow: inset 0 0 15px rgba(184, 151, 83, 0.2), 0 8px 16px rgba(0,0,0,0.4);
+    transition: all 0.3s ease;
+}
+.menu-card:hover {
+    transform: translateY(-4px);
+    border-color: #e5c173;
+}
+
+/* Placeholder tekst tonen in de live editor wanneer een veld helemaal leeg is */
+[contenteditable="true"]:empty:before {
+    content: attr(placeholder);
+    display: block;
+    color: #a8a29e;
+    font-style: italic;
+}
+
+/* Visuele indicatie (oranje gloed en stippellijn) voor de admin tijdens het bewerken */
+.admin-editing [contenteditable="true"] {
+    outline: 2px dashed #b89753;
+    outline-offset: 4px;
+    background-color: rgba(245, 158, 11, 0.05);
+}
