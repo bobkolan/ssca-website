@@ -220,7 +220,18 @@ async function handleLogin() {
     const pass = document.getElementById('password').value;
     const err = document.getElementById('loginError');
 
+    // Genereer de hash van wat jij zojuist hebt ingetypt
     const inputHash = await sha256(pass);
+
+    // DIT ZIJN DE DIAGNOSE REGELS (Alleen zichtbaar in jouw F12 console)
+    console.log("--- INLOG DIAGNOSE ---");
+    console.log("Ingevoerde gebruikersnaam:", user);
+    console.log("Verwachte gebruikersnaam uit cloud:", state.auth.username);
+    console.log("Berekende hash van invoer:", inputHash);
+    console.log("Verwachte hash uit cloud:    ", state.auth.passHash);
+    console.log("Match gebruikersnaam?:", user === state.auth.username);
+    console.log("Match wachtwoord-hash?:", inputHash === state.auth.passHash);
+    console.log("----------------------");
 
     if (user === state.auth.username && inputHash === state.auth.passHash) {
         state.isLoggedIn = true;
@@ -237,7 +248,7 @@ async function handleLogin() {
         renderScores();
     } else {
         if(err) {
-            err.innerText = "Combinatie onjuist. Let op speciale tekens.";
+            err.innerText = "Combinatie onjuist. Open F12 Console voor details.";
             err.classList.remove('hidden');
         }
     }
