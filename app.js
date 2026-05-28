@@ -6,9 +6,9 @@ const MASTER_KEY = "$2a$10$H4KCi9v/wRbgMaa7ZRtm4ewHBEnnvc/C4774w/I0HJK.A5YYTXFWG
 
 const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
-// Globale applicatie status (inclusief auth vanuit de cloud)
+// Globale applicatie status
 let state = {
-    auth: {}, 
+    auth: { username: "admin", passHash: "" }, 
     texts: {},
     events: [],
     players: [],
@@ -30,24 +30,39 @@ async function sha256(message) {
 
 // Data ophalen uit de cloud bij het laden van de pagina
 async function loadDataFromCloud() {
+    console.log("Starten met ophalen van data via URL:", API_URL + "/latest");
     updateSyncStatus("Bezig met ophalen van live data...");
+    
+    // Extra veiligheidscheck: staan de keys er wel in?
+    if (BIN_ID.includes("JOUW_JSONBIN") || MASTER_KEY.includes("JOUW_JSONBIN")) {
+        console.error("Fout: De JSONBin sleutels zijn nog niet ingevuld in app.js!");
+        updateSyncStatus("❌ Configuratiefout in app.js");
+        return;
+    }
+
     try {
-        const response = await fetch(`${API_URL}/latest`, {
+        const response = await fetch(API_URL + "/latest", {
             method: "GET",
             headers: {
-                "X-Master-Key": MASTER_KEY
+                "X-Master-Key": MASTER_KEY,
+                "X-Bin-Meta": "false" // Dit zorgt ervoor dat JSONBin alleen de pure data stuurt zonder extra rommel
             }
         });
         
-        if (!response.ok) throw new Error("Fout bij ophalen van cloud-data.");
+        console.log("JSONBin reactie status:", response.status);
+        
+        if (!response.ok) {
+            throw new Error("Server reageerde met status: " + response.status);
+        }
         
         const resData = await response.json();
+        console.log("Data succesvol ontvangen van JSONBin:", resData);
         
-        // Vul de status met de database data
-        state.auth = resData.record.auth || { username: "admin", passHash: "" };
-        state.texts = resData.record.texts || {};
-        state.events = resData.record.events || [];
-        state.players = resData.record.players || [];
+        // Vul de status met de database data (als het object direct de velden bevat)
+        state.auth = resData.auth || { username: "admin", passHash: "7cfae4f71120023ee0998ccb5d92fe7b949219ea2b52479e0a811c75949d6c81" };
+        state.texts = resData.texts || {};
+        state.events = resData.events || [];
+        state.players = resData.players || [];
         
         // Bouw de pagina visueel op
         loadTextBlocks();
@@ -55,9 +70,8 @@ async function loadDataFromCloud() {
         renderScores();
         updateSyncStatus("✓ Live cloud-data geladen");
     } catch (error) {
-        console.error(error);
-        updateSyncStatus("❌ Laden mislukt. Controleer je API keys.");
-        alert("Kon de live gegevens niet ophalen uit de cloud. Controleer of je de juiste Bin ID en Master Key hebt ingevuld.");
+        console.error("Gecrasht tijdens loadDataFromCloud:", error);
+        updateSyncStatus("❌ Laden mislukt.");
     }
 }
 
