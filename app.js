@@ -584,4 +584,11 @@ document.addEventListener('click', function(e) {
     }
 });
 
-window.onload = loadDataFromCloud;
+window.onload = async function() {
+    await loadDataFromCloud();
+    
+    // Activeer de overige tekstblokken (Over Ons, Contact)
+    if (typeof loadTextBlocks === "function") {
+        loadTextBlocks();
+    }
+};
