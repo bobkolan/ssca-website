@@ -143,18 +143,34 @@
             <div class="border-b-2 border-[#b89753] pb-3">
                 <h2 class="text-3xl font-black text-[#0f3422] uppercase tracking-wide"><i class="fa-solid fa-ranking-star mr-2 text-[#b89753]"></i>Actueel Leiderbord</h2>
             </div>
-            <div class="bg-stone-900 text-white rounded-xl overflow-hidden shadow-2xl border-2 border-[#b89753]">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-[#0c261a] text-[#ecd292] uppercase text-xs font-bold tracking-wider border-b border-[#b89753]">
-                            <th class="p-4 text-center w-20">Rank</th>
-                            <th class="p-4">Speler Naam</th>
-                            <th class="p-4 text-center">Gewonnen</th>
-                            <th class="p-4 text-center">Hoogste Break</th>
-                        </tr>
-                    </thead>
-                    <tbody id="scoresTableBody" class="divide-y divide-stone-800 text-stone-200"></tbody>
-                </table>
+            <div class="bg-stone-900 border border-stone-700 rounded-xl p-6 shadow-xl space-y-3">
+                <h3 class="text-md font-bold text-[#ecd292] uppercase border-b border-stone-800 pb-2 flex items-center">
+                    <i class="fa-solid fa-users text-[#ecd292] mr-2"></i> Ledenbeheer & Toernooipunten
+                </h3>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
+                    <div class="space-y-4 bg-stone-950 p-4 rounded-xl border border-stone-800/80">
+                        <h4 class="text-xs font-bold text-[#ecd292] uppercase tracking-wider">Nieuw Lid Inschrijven</h4>
+                        <div>
+                            <label class="block text-[11px] text-stone-400 mb-1 font-semibold">Naam van het lid</label>
+                            <input type="text" id="newMemberName" placeholder="Bijv. Dirk" class="w-full bg-stone-900 text-white border border-stone-800 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#b89753]">
+                        </div>
+                        <div class="flex items-center space-x-2 py-1">
+                            <input type="checkbox" id="newMemberActive" checked class="w-4 h-4 accent-emerald-600 rounded cursor-pointer">
+                            <label for="newMemberActive" class="text-[11px] text-stone-300 font-semibold cursor-pointer select-none">Dit lid is actief</label>
+                        </div>
+                        <button onclick="addNewMember()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 rounded text-xs transition cursor-pointer shadow-md">
+                            <i class="fa-solid fa-user-plus mr-1"></i> Lid Toevoegen
+                        </button>
+                    </div>
+            
+                    <div class="lg:col-span-2 bg-stone-950 p-4 rounded-xl border border-stone-800/80 flex flex-col">
+                        <h4 class="text-xs font-bold text-[#ecd292] uppercase tracking-wider mb-3">Toernooiscores invoeren (Beste 3 tellen)</h4>
+                        <div id="adminMembersManagerList" class="space-y-2 overflow-y-auto max-h-[300px] pr-2 flex-1">
+                            <p class="text-stone-500 text-xs italic">Laden van ledenadministratie...</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
