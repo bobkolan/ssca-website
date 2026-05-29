@@ -333,7 +333,10 @@ function renderScores() {
     const publicTbody = document.getElementById('scoresTableBody');
     const adminContainer = document.getElementById('adminMembersManagerList');
     
-    if (!state.members) state.members = [];
+    // Altijd zorgen dat state.members een geldige array is
+    if (!state.members || !Array.isArray(state.members)) {
+        state.members = [];
+    }
 
     // 1. OPENBARE RANGLIJST
     if (publicTbody) {
@@ -349,8 +352,9 @@ function renderScores() {
         } else {
             activeMembers.forEach((member, idx) => {
                 const totaalBesteDrie = calculateBestThreeTotal(member.tournamentScores);
-                const alleScoresStr = member.tournamentScores && member.tournamentScores.length > 0 
-                    ? `(${[...member.tournamentScores].reverse().join(', ')})` 
+                const tScores = member.tournamentScores || [];
+                const alleScoresStr = tScores.length > 0 
+                    ? `(${[...tScores].reverse().join(', ')})` 
                     : '(Nog geen deelnames)';
 
                 publicTbody.innerHTML += `
@@ -368,64 +372,92 @@ function renderScores() {
         }
     }
 
-    // 2. ADMIN PANEL LEDENLIJST
-    if (adminContainer && state.isLoggedIn) {
-        adminContainer.innerHTML = '';
-        const sortedMembers = [...state.members].sort((a,b) => a.name.localeCompare(b.name));
+    // VEILIGHEID: Als we niet ingelogd zijn of de container is er niet, stop hier.
+    if (!adminContainer || !state.isLoggedIn) return;
 
-        if (sortedMembers.length === 0) {
-            adminContainer.innerHTML = `<p class="text-stone-500 text-xs italic p-2">Er zijn nog geen leden.</p>`;
-            return;
-        }
+    adminContainer.innerHTML = '';
+    const sortedMembers = [...state.members].sort((a,b) => a.name.localeCompare(b.name));
 
-        sortedMembers.forEach((member) => {
-            const origIdx = state.members.findIndex(m => m.name === member.name);
-            if (!member.tournamentScores) member.tournamentScores = [];
-            
-            const totaalBesteDrie = calculateBestThreeTotal(member.tournamentScores);
-            const geschiedenisTekst = member.tournamentScores.length > 0 ? member.tournamentScores.join(', ') : 'Geen';
+    if (sortedMembers.length === 0) {
+        adminContainer.innerHTML = `<p class="text-stone-500 text-xs italic p-2">Er zijn nog geen leden. Voeg hier links een lid toe!</p>`;
+        return;
+    }
 
-            adminContainer.innerHTML += `
-                <div class="bg-stone-900 border ${member.isActive ? 'border-stone-800' : 'border-red-900/30 opacity-60'} p-3 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center text-xs text-white gap-3 mb-2">
-                    <div class="min-w-[120px] text-left">
-                        <strong class="text-sm text-white block">${member.name}</strong>
-                        <span class="text-[10px] text-stone-400 block mt-0.5">Historie: [${geschiedenisTekst}]</span>
-                        <span class="text-[11px] text-[#ecd292] font-bold block mt-1">Totaal (Beste 3): ${totaalBesteDrie} pnt</span>
+    sortedMembers.forEach((member) => {
+        const origIdx = state.members.findIndex(m => m.name === member.name);
+        const tScores = member.tournamentScores || [];
+        const totaalBesteDrie = calculateBestThreeTotal(tScores);
+        const geschiedenisTekst = tScores.length > 0 ? tScores.join(', ') : 'Geen';
+
+        adminContainer.innerHTML += `
+            <div class="bg-stone-900 border ${member.isActive !== false ? 'border-stone-800' : 'border-red-900/30 opacity-60'} p-3 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center text-xs text-white gap-3 mb-2">
+                <div class="min-w-[120px] text-left">
+                    <strong class="text-sm text-white block">${member.name}</strong>
+                    <span class="text-[10px] text-stone-400 block mt-0.5">Historie: [${geschiedenisTekst}]</span>
+                    <span class="text-[11px] text-[#ecd292] font-bold block mt-1">Totaal (Beste 3): ${totaalBesteDrie} pnt</span>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-3 bg-stone-950 p-2 rounded-lg border border-stone-800 w-full md:w-auto">
+                    <div class="flex items-center space-x-1">
+                        <span class="text-stone-400 text-[10px]">Nieuwe Score:</span>
+                        <input type="number" id="newScoreFor_${origIdx}" placeholder="Frames" class="w-14 bg-stone-900 border border-stone-700 rounded px-2 py-1 text-center text-emerald-400 font-bold focus:outline-none text-xs">
+                        <button onclick="pushNewTournamentScore(${origIdx})" class="bg-emerald-700 hover:bg-emerald-600 px-2 py-1 rounded font-bold text-white cursor-pointer text-[11px]">Voeg toe</button>
                     </div>
                     
-                    <div class="flex flex-wrap items-center gap-3 bg-stone-950 p-2 rounded-lg border border-stone-800 w-full md:w-auto">
-                        <div class="flex items-center space-x-1">
-                            <span class="text-stone-400 text-[10px]">Nieuwe Score:</span>
-                            <input type="number" id="newScoreFor_${origIdx}" placeholder="Frames" class="w-14 bg-stone-900 border border-stone-700 rounded px-2 py-1 text-center text-emerald-400 font-bold focus:outline-none text-xs">
-                            <button onclick="pushNewTournamentScore(${origIdx})" class="bg-emerald-700 hover:bg-emerald-600 px-2 py-1 rounded font-bold text-white cursor-pointer text-[11px]">Voeg toe</button>
-                        </div>
-                        
-                        <div class="flex items-center space-x-1 border-l border-stone-800 pl-3">
-                            <span class="text-stone-400 text-[10px]">H. Break:</span>
-                            <input type="number" value="${member.highestBreak || 0}" onchange="updateHighestBreak(${origIdx}, this.value)" class="w-14 bg-stone-900 border border-stone-700 rounded px-1 py-0.5 text-center text-amber-400 font-mono font-bold focus:outline-none text-xs">
-                        </div>
-                        
-                        <button onclick="clearLastScore(${origIdx})" class="text-red-400 hover:text-red-300 font-semibold text-[10px] border border-red-900/50 px-1.5 py-0.5 rounded bg-red-950/20 cursor-pointer ml-auto">
-                            Reset Last
-                        </button>
+                    <div class="flex items-center space-x-1 border-l border-stone-800 pl-3">
+                        <span class="text-stone-400 text-[10px]">H. Break:</span>
+                        <input type="number" value="${member.highestBreak || 0}" onchange="updateHighestBreak(${origIdx}, this.value)" class="w-14 bg-stone-900 border border-stone-700 rounded px-1 py-0.5 text-center text-amber-400 font-mono font-bold focus:outline-none text-xs">
                     </div>
-
-                    <div class="flex items-center space-x-2 ml-auto md:ml-0">
-                        <button onclick="toggleMemberStatus(${origIdx})" class="text-[10px] font-bold px-2 py-1 rounded ${member.isActive ? 'bg-stone-800 text-stone-300' : 'bg-red-950 text-red-400'} cursor-pointer">
-                            ${member.isActive ? 'Actief' : 'Inactief'}
-                        </button>
-                        <button onclick="deleteMember(${origIdx})" class="text-stone-500 hover:text-red-400 p-1 cursor-pointer">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </div>
+                    
+                    <button onclick="clearLastScore(${origIdx})" class="text-red-400 hover:text-red-300 font-semibold text-[10px] border border-red-900/50 px-1.5 py-0.5 rounded bg-red-950/20 cursor-pointer ml-auto">
+                        Reset Last
+                    </button>
                 </div>
-            `;
-        });
+
+                <div class="flex items-center space-x-2 ml-auto md:ml-0">
+                    <button onclick="toggleMemberStatus(${origIdx})" class="text-[10px] font-bold px-2 py-1 rounded ${member.isActive !== false ? 'bg-stone-800 text-stone-300' : 'bg-red-950 text-red-400'} cursor-pointer">
+                        ${member.isActive !== false ? 'Actief' : 'Inactief'}
+                    </button>
+                    <button onclick="deleteMember(${origIdx})" class="text-stone-500 hover:text-red-400 p-1 cursor-pointer">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+// Nieuw lid registreren
+function addNewMember() {
+    const nameInput = document.getElementById('newMemberName');
+    const activeInput = document.getElementById('newMemberActive');
+    if (!nameInput) return;
+
+    const name = nameInput.value.trim();
+    if (!name) return alert('Vul een naam in.');
+
+    if (!state.members || !Array.isArray(state.members)) {
+        state.members = [];
     }
+    
+    const exists = state.members.some(m => m.name && m.name.toLowerCase() === name.toLowerCase());
+    if (exists) return alert('Dit lid bestaat al!');
+
+    state.members.push({
+        name: name,
+        isActive: activeInput ? activeInput.checked : true,
+        tournamentScores: [],
+        highestBreak: 0
+    });
+
+    nameInput.value = '';
+    renderScores();
+    saveDataToCloud();
 }
 
 // Voeg nieuwe score toe
 function pushNewTournamentScore(idx) {
+    if (!state.members[idx]) return;
     const input = document.getElementById(`newScoreFor_${idx}`);
     if (!input) return;
 
@@ -451,31 +483,6 @@ function clearLastScore(idx) {
     }
 }
 
-// Nieuw lid registreren
-function addNewMember() {
-    const nameInput = document.getElementById('newMemberName');
-    const activeInput = document.getElementById('newMemberActive');
-    if (!nameInput) return;
-
-    const name = nameInput.value.trim();
-    if (!name) return alert('Vul een naam in.');
-
-    if (!state.members) state.members = [];
-    const exists = state.members.some(m => m.name.toLowerCase() === name.toLowerCase());
-    if (exists) return alert('Dit lid bestaat al!');
-
-    state.members.push({
-        name: name,
-        isActive: activeInput.checked,
-        tournamentScores: [],
-        highestBreak: 0
-    });
-
-    nameInput.value = '';
-    renderScores();
-    saveDataToCloud();
-}
-
 // Hoogste break aanpassen
 function updateHighestBreak(idx, val) {
     const intVal = parseInt(val);
@@ -489,7 +496,7 @@ function updateHighestBreak(idx, val) {
 // Status omdraaien
 function toggleMemberStatus(idx) {
     if (state.members[idx]) {
-        state.members[idx].isActive = !state.members[idx].isActive;
+        state.members[idx].isActive = (state.members[idx].isActive === false) ? true : false;
         renderScores();
         saveDataToCloud();
     }
