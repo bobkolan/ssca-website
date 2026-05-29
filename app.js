@@ -50,16 +50,29 @@ async function loadDataFromCloud() {
         
         if (!response.ok) throw new Error("Server reageerde met status: " + response.status);
         
-        const resData = await response.json();
+        // Zorg dat dit in je loadDataFromCloud() staat na het ophalen van de data:
+        const data = await response.json();
         
-        state.auth = resData.auth || { username: "admin", passHash: "7cfae4f71120023ee0998ccb5d92fe7b949219ea2b52479e0a811c75949d6c81" };
-        state.texts = resData.texts || {};
-        state.events = resData.events || [];
-        state.members = resData.members || [];
+        // Dit vangt op als er nog 'players' in de cloud staan, of als het helemaal leeg is
+        if (data.record.members) {
+            state.members = data.record.members;
+        } else if (data.record.players) {
+            // Automatische omzetting van oude data naar de nieuwe structuur
+            state.members = data.record.players.map(p => ({
+                name: p.name,
+                isActive: true,
+                tournamentScores: p.wins ? [p.wins] : [], // zet oude winst om naar een score
+                highestBreak: p.break || 0
+            }));
+        } else {
+            state.members = [];
+        }
         
-        loadTextBlocks();
-        renderCalendar();
-        renderScores();
+        state.events = data.record.events || [];
+        state.texts = data.record.texts || [];
+        // ... eventuele andere velden zoals auth ...
+        
+        renderScores(); // Dit vult je dashboard
         updateSyncStatus("✓ Live cloud-data geladen");
     } catch (error) {
         console.error("Fout bij laden:", error);
