@@ -435,10 +435,16 @@ function renderScores() {
 function addNewMember() {
     const nameInput = document.getElementById('newMemberName');
     const activeInput = document.getElementById('newMemberActive');
-    if (!nameInput) return;
+    
+    // Als het HTML-veld écht niet bestaat, geeft de browser nu deze duidelijke foutmelding:
+    if (!nameInput) {
+        return alert('Fout: Het invoerveld met id="newMemberName" ontbreekt in de HTML code!');
+    }
 
     const name = nameInput.value.trim();
-    if (!name) return alert('Vul een naam in.');
+    if (!name) {
+        return alert('Vul een naam in.');
+    }
 
     if (!state.members || !Array.isArray(state.members)) {
         state.members = [];
@@ -457,6 +463,7 @@ function addNewMember() {
     nameInput.value = '';
     renderScores();
     saveDataToCloud();
+    alert('Lid succesvol toegevoegd!');
 }
 
 // Voeg nieuwe score toe
