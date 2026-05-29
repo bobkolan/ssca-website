@@ -510,6 +510,10 @@ function renderScores() {
 
 // Nieuw lid registreren
 function addNewMember() {
+    if (!state.isLoggedIn) {
+        alert("Toegang geweigerd: Je moet ingelogd zijn als beheerder.");
+        return;
+    }
     const nameInput = document.getElementById('newMemberName');
     const activeInput = document.getElementById('newMemberActive');
     
