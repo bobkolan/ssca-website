@@ -303,12 +303,14 @@ function deleteEvent(idx) {
     }
 }
 
+// ==========================================
+// TOERNOOISCORES & LEDENBEHEER LOGICA
+// ==========================================
+
 // Bereken de som van de beste 3 toernooien
 function calculateBestThreeTotal(scoresArray) {
     if (!scoresArray || !Array.isArray(scoresArray)) return 0;
-    // Filter eventuele ongeldige invoer, sorteer van HOOG naar LAAG
     const sortedScores = [...scoresArray].map(Number).filter(n => !isNaN(n)).sort((a, b) => b - a);
-    // Neem de eerste 3 (de hoogste 3) en tel ze op
     const bestThree = sortedScores.slice(0, 3);
     return bestThree.reduce((sum, score) => sum + score, 0);
 }
@@ -320,14 +322,11 @@ function renderScores() {
     
     if (!state.members) state.members = [];
 
-    // 1. OPENBARE RANGLIJST BEREKENEN EN TONEN
+    // 1. OPENBARE RANGLIJST
     if (publicTbody) {
         publicTbody.innerHTML = '';
-        
-        // Filter actieve leden
         const activeMembers = state.members.filter(m => m.isActive !== false);
         
-        // Sorteer op de som van de beste 3 resultaten
         activeMembers.sort((a, b) => {
             return calculateBestThreeTotal(b.tournamentScores) - calculateBestThreeTotal(a.tournamentScores);
         });
@@ -337,7 +336,6 @@ function renderScores() {
         } else {
             activeMembers.forEach((member, idx) => {
                 const totaalBesteDrie = calculateBestThreeTotal(member.tournamentScores);
-                // Maak een leesbaar overzichtje van de ruwe scores voor de bezoeker, bijv: (6, 4, 3, 0)
                 const alleScoresStr = member.tournamentScores && member.tournamentScores.length > 0 
                     ? `(${[...member.tournamentScores].reverse().join(', ')})` 
                     : '(Nog geen deelnames)';
@@ -357,7 +355,7 @@ function renderScores() {
         }
     }
 
-    // 2. ADMIN PANEL LEDENLIJST EN INVOER
+    // 2. ADMIN PANEL LEDENLIJST
     if (adminContainer && state.isLoggedIn) {
         adminContainer.innerHTML = '';
         const sortedMembers = [...state.members].sort((a,b) => a.name.localeCompare(b.name));
@@ -376,7 +374,7 @@ function renderScores() {
 
             adminContainer.innerHTML += `
                 <div class="bg-stone-900 border ${member.isActive ? 'border-stone-800' : 'border-red-900/30 opacity-60'} p-3 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center text-xs text-white gap-3 mb-2">
-                    <div class="min-w-[120px]">
+                    <div class="min-w-[120px] text-left">
                         <strong class="text-sm text-white block">${member.name}</strong>
                         <span class="text-[10px] text-stone-400 block mt-0.5">Historie: [${geschiedenisTekst}]</span>
                         <span class="text-[11px] text-[#ecd292] font-bold block mt-1">Totaal (Beste 3): ${totaalBesteDrie} pnt</span>
@@ -385,13 +383,13 @@ function renderScores() {
                     <div class="flex flex-wrap items-center gap-3 bg-stone-950 p-2 rounded-lg border border-stone-800 w-full md:w-auto">
                         <div class="flex items-center space-x-1">
                             <span class="text-stone-400 text-[10px]">Nieuwe Score:</span>
-                            <input type="number" id="newScoreFor_${origIdx}" placeholder="Frames" class="w-14 bg-stone-900 border border-stone-700 rounded px-2 py-1 text-center text-emerald-400 font-bold focus:outline-none">
-                            <button onclick="pushNewTournamentScore(${origIdx})" class="bg-emerald-700 hover:bg-emerald-600 px-2 py-1 rounded font-bold text-white cursor-pointer">Voeg toe</button>
+                            <input type="number" id="newScoreFor_${origIdx}" placeholder="Frames" class="w-14 bg-stone-900 border border-stone-700 rounded px-2 py-1 text-center text-emerald-400 font-bold focus:outline-none text-xs">
+                            <button onclick="pushNewTournamentScore(${origIdx})" class="bg-emerald-700 hover:bg-emerald-600 px-2 py-1 rounded font-bold text-white cursor-pointer text-[11px]">Voeg toe</button>
                         </div>
                         
                         <div class="flex items-center space-x-1 border-l border-stone-800 pl-3">
                             <span class="text-stone-400 text-[10px]">H. Break:</span>
-                            <input type="number" value="${member.highestBreak || 0}" onchange="updateHighestBreak(${origIdx}, this.value)" class="w-14 bg-stone-900 border border-stone-700 rounded px-1 py-0.5 text-center text-amber-400 font-mono font-bold focus:outline-none">
+                            <input type="number" value="${member.highestBreak || 0}" onchange="updateHighestBreak(${origIdx}, this.value)" class="w-14 bg-stone-900 border border-stone-700 rounded px-1 py-0.5 text-center text-amber-400 font-mono font-bold focus:outline-none text-xs">
                         </div>
                         
                         <button onclick="clearLastScore(${origIdx})" class="text-red-400 hover:text-red-300 font-semibold text-[10px] border border-red-900/50 px-1.5 py-0.5 rounded bg-red-950/20 cursor-pointer ml-auto">
@@ -413,19 +411,15 @@ function renderScores() {
     }
 }
 
-// Voeg een nieuwe toernooiscore toe aan de reeks van een speler
+// Voeg nieuwe score toe
 function pushNewTournamentScore(idx) {
     const input = document.getElementById(`newScoreFor_${idx}`);
     if (!input) return;
 
     const scoreValue = parseInt(input.value);
-    if (isNaN(scoreValue) || scoreValue < 0) return alert('Vul aub een geldige score in (0 of hoger). If absent, fill 0.');
+    if (isNaN(scoreValue) || scoreValue < 0) return alert('Vul een geldige score in.');
 
-    if (!state.members[idx].tournamentScores) {
-        state.members[idx].tournamentScores = [];
-    }
-
-    // Voeg de nieuwe score toe aan de speler
+    if (!state.members[idx].tournamentScores) state.members[idx].tournamentScores = [];
     state.members[idx].tournamentScores.push(scoreValue);
     
     input.value = '';
@@ -433,10 +427,10 @@ function pushNewTournamentScore(idx) {
     saveDataToCloud();
 }
 
-// Verwijder de laatst ingevoerde score (foutje herstellen)
+// Laatste score herstellen
 function clearLastScore(idx) {
     if (state.members[idx] && state.members[idx].tournamentScores && state.members[idx].tournamentScores.length > 0) {
-        if(confirm(`Laatste score (${state.members[idx].tournamentScores[state.members[idx].tournamentScores.length - 1]}) van ${state.members[idx].name} wissen?`)) {
+        if(confirm(`Laatste score van ${state.members[idx].name} wissen?`)) {
             state.members[idx].tournamentScores.pop();
             renderScores();
             saveDataToCloud();
@@ -453,6 +447,7 @@ function addNewMember() {
     const name = nameInput.value.trim();
     if (!name) return alert('Vul een naam in.');
 
+    if (!state.members) state.members = [];
     const exists = state.members.some(m => m.name.toLowerCase() === name.toLowerCase());
     if (exists) return alert('Dit lid bestaat al!');
 
@@ -468,6 +463,7 @@ function addNewMember() {
     saveDataToCloud();
 }
 
+// Hoogste break aanpassen
 function updateHighestBreak(idx, val) {
     const intVal = parseInt(val);
     if (state.members[idx] && !isNaN(intVal)) {
@@ -477,6 +473,7 @@ function updateHighestBreak(idx, val) {
     }
 }
 
+// Status omdraaien
 function toggleMemberStatus(idx) {
     if (state.members[idx]) {
         state.members[idx].isActive = !state.members[idx].isActive;
@@ -485,45 +482,9 @@ function toggleMemberStatus(idx) {
     }
 }
 
+// Lid deleten
 function deleteMember(idx) {
-    if (state.members[idx] && confirm(`Weet je zeker dat je ${state.members[idx].name} permanent wilt verwijderen?`)) {
-        state.members.splice(idx, 1);
-        renderScores();
-        saveDataToCloud();
-    }
-}
-
-// Plus en Min knoppen logica
-function adjustScore(idx, field, amount) {
-    if (state.members[idx]) {
-        state.members[idx][field] = Math.max(0, (state.members[idx][field] || 0) + amount);
-        renderScores();
-        saveDataToCloud();
-    }
-}
-
-// Hoogste break direct typen
-function updateHighestBreak(idx, val) {
-    const intVal = parseInt(val);
-    if (state.members[idx] && !isNaN(intVal)) {
-        state.members[idx].highestBreak = Math.max(0, intVal);
-        renderScores();
-        saveDataToCloud();
-    }
-}
-
-// Schakelen tussen Actief / Inactief
-function toggleMemberStatus(idx) {
-    if (state.members[idx]) {
-        state.members[idx].isActive = !state.members[idx].isActive;
-        renderScores();
-        saveDataToCloud();
-    }
-}
-
-// Lid permanent verwijderen
-function deleteMember(idx) {
-    if (state.members[idx] && confirm(`Weet je zeker dat je ${state.members[idx].name} permanent wilt verwijderen?`)) {
+    if (state.members[idx] && confirm(`Weet je zeker dat je ${state.members[idx].name} wilt verwijderen?`)) {
         state.members.splice(idx, 1);
         renderScores();
         saveDataToCloud();
