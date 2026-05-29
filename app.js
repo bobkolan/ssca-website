@@ -12,7 +12,7 @@ let state = {
     auth: { username: "admin", passHash: "" }, 
     texts: {},
     events: [],
-    players: [],
+    members: [],
     isLoggedIn: false,
     isEditMode: false
 };
@@ -55,7 +55,7 @@ async function loadDataFromCloud() {
         state.auth = resData.auth || { username: "admin", passHash: "7cfae4f71120023ee0998ccb5d92fe7b949219ea2b52479e0a811c75949d6c81" };
         state.texts = resData.texts || {};
         state.events = resData.events || [];
-        state.members = resData.players || [];
+        state.members = resData.members || [];
         
         loadTextBlocks();
         renderCalendar();
@@ -81,7 +81,7 @@ async function saveDataToCloud() {
                 auth: state.auth,
                 texts: state.texts,
                 events: state.events,
-                players: state.members
+                members: state.members
             })
         });
 
