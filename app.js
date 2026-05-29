@@ -315,6 +315,8 @@ async function handleLogin() {
             err.classList.remove('hidden');
         }
     }
+    const publicForm = document.getElementById('publicNewMemberForm');
+    if (publicForm) publicForm.classList.remove('hidden');
 }
 
 function handleLogout() {
