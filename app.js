@@ -294,9 +294,21 @@ async function handleLogin() {
         document.getElementById('username').value = '';
         document.getElementById('password').value = '';
         
-        showPage('home');
+       if (user === state.auth.username && inputHash === state.auth.passHash) {
+        state.isLoggedIn = true;
+        if(err) err.classList.add('hidden');
+        
+        document.getElementById('adminNavBtn').innerHTML = `<i class="fa-solid fa-screwdriver-wrench text-emerald-800"></i> BEHEER`;
+        document.getElementById('adminEditorBar').classList.remove('hidden');
+        
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+        
+        // STUUR DE ADMIN DIRECT NAAR HET DASHBOARD IN PLAATS VAN HOME
+        showPage('adminDashboard'); 
         renderCalendar();
         renderScores();
+    }
     } else {
         if(err) {
             err.innerText = "Combinatie onjuist. Open F12 Console voor details.";
