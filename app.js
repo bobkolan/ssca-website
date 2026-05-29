@@ -29,36 +29,41 @@ async function sha256(message) {
 // DATA SYNCHRONISATIE (JSONBIN.IO API)
 // ==========================================
 
-// Data inladen vanuit de cloud
+// Data inladen vanuit de cloud (JSONBin v3 compatibel)
 async function loadDataFromCloud() {
-    updateSyncStatus("🔄 Live cloud-data laden...");
+    if (typeof updateSyncStatus === "function") {
+        updateSyncStatus("🔄 Live cloud-data laden...");
+    }
     try {
         const response = await fetch(API_URL, {
             method: "GET",
             headers: {
-                "X-Master-Key": MASTER_KEY
+                "X-Master-Key": MASTER_KEY,
+                "X-Bin-Meta": "true" // Vertelt JSONBin om de metadata (zoals .record) netjes mee te sturen
             }
         });
 
-        if (!response.ok) throw new Error("Ophalen uit cloud mislukt.");
+        // Als JSONBin een fout geeft, vangen we die hier direct op VOORDAT de browser crasht
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.message || `Server gaf status code ${response.status}`);
+        }
         
         const data = await response.json();
         
-        // VEILIGHEID: Controleer of data en data.record wel echt bestaan
-        if (!data || !data.record) {
-            console.error("JSONBin response structuur is onbekend:", data);
-            state.members = [];
-            state.events = [];
-            state.texts = {};
-        } else {
-            // Als het record bestaat, pakken we de data eruit
+        if (data && data.record) {
             const record = data.record;
             
-            // Controleer of er members zijn, zo niet check oude spelers, anders leeg
+            // Verwerk de teksten
+            if (record.texts) {
+                state.texts = { ...state.texts, ...record.texts };
+            }
+            
+            // Verwerk de members
             if (record.members) {
                 state.members = record.members;
             } else if (record.players) {
-                // Automatische omzetting van oude spelerslijst naar nieuwe structuur
+                // Automatische omzetting van oude spelerslijst
                 state.members = record.players.map(p => ({
                     name: p.name,
                     isActive: true,
@@ -70,24 +75,31 @@ async function loadDataFromCloud() {
             }
 
             state.events = record.events || [];
-            state.texts = record.texts || {};
             if (record.auth) state.auth = record.auth;
+            
+            if (typeof updateSyncStatus === "function") {
+                updateSyncStatus("✅ Live cloud-data geladen");
+            }
         }
-
-        updateSyncStatus("✅ Live cloud-data geladen");
-        renderScores();
-        if (typeof renderCalendar === "function") renderCalendar();
-        
     } catch (error) {
-        console.error("Fout bij laden:", error);
-        updateSyncStatus("❌ Fout bij laden cloud-data");
+        console.error("Cloud verbinding mislukt tijdens laden:", error);
+        if (typeof updateSyncStatus === "function") {
+            updateSyncStatus("❌ Offline modus (Laden mislukt)");
+        }
     }
+
+    // Render altijd de pagina, zodat deze nooit wit blijft
+    if (typeof renderTexts === "function") renderTexts();
+    if (typeof renderScores === "function") renderScores();
+    if (typeof renderCalendar === "function") renderCalendar();
 }
 
 
-// Data opslaan en synchroniseren naar de cloud
+// Data opslaan en synchroniseren naar de cloud (JSONBin v3 compatibel)
 async function saveDataToCloud() {
-    updateSyncStatus("🔄 Wijzigingen synchroniseren naar de cloud...");
+    if (typeof updateSyncStatus === "function") {
+        updateSyncStatus("🔄 Wijzigingen opslaan naar cloud...");
+    }
     try {
         const response = await fetch(API_URL, {
             method: "PUT",
@@ -103,14 +115,21 @@ async function saveDataToCloud() {
             })
         });
 
-        if (!response.ok) throw new Error("Cloud synchronisatie mislukt.");
-        updateSyncStatus("✅ Live cloud-data geladen");
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.message || `Server gaf status code ${response.status}`);
+        }
+
+        if (typeof updateSyncStatus === "function") {
+            updateSyncStatus("✅ Live cloud-data geladen");
+        }
     } catch (error) {
-        console.error(error);
-        updateSyncStatus("❌ Synchronisatiefout!");
+        console.error("Cloud verbinding mislukt tijdens opslaan:", error);
+        if (typeof updateSyncStatus === "function") {
+            updateSyncStatus("❌ Synchronisatiefout!");
+        }
     }
 }
-
 function updateSyncStatus(msg) {
     const indicator = document.getElementById("syncStatus");
     if (indicator) indicator.innerText = msg;
