@@ -29,58 +29,62 @@ async function sha256(message) {
 // DATA SYNCHRONISATIE (JSONBIN.IO API)
 // ==========================================
 
-// Data ophalen uit de cloud bij het laden van de pagina
+// Data inladen vanuit de cloud
 async function loadDataFromCloud() {
-    updateSyncStatus("Bezig met ophalen van live data...");
-    
-    if (BIN_ID.includes("JOUW_JSONBIN") || MASTER_KEY.includes("JOUW_JSONBIN")) {
-        console.error("Fout: De JSONBin sleutels zijn nog niet ingevuld!");
-        updateSyncStatus("❌ Configuratiefout in app.js");
-        return;
-    }
-
+    updateSyncStatus("🔄 Live cloud-data laden...");
     try {
-        const response = await fetch(API_URL + "/latest", {
+        const response = await fetch(API_URL, {
             method: "GET",
             headers: {
-                "X-Master-Key": MASTER_KEY,
-                "X-Bin-Meta": "false"
+                "X-Master-Key": MASTER_KEY
             }
         });
+
+        if (!response.ok) throw new Error("Ophalen uit cloud mislukt.");
         
-        if (!response.ok) throw new Error("Server reageerde met status: " + response.status);
-        
-        // Zorg dat dit in je loadDataFromCloud() staat na het ophalen van de data:
         const data = await response.json();
         
-        // Dit vangt op als er nog 'players' in de cloud staan, of als het helemaal leeg is
-        if (data.record.members) {
-            state.members = data.record.members;
-        } else if (data.record.players) {
-            // Automatische omzetting van oude data naar de nieuwe structuur
-            state.members = data.record.players.map(p => ({
-                name: p.name,
-                isActive: true,
-                tournamentScores: p.wins ? [p.wins] : [], // zet oude winst om naar een score
-                highestBreak: p.break || 0
-            }));
-        } else {
+        // VEILIGHEID: Controleer of data en data.record wel echt bestaan
+        if (!data || !data.record) {
+            console.error("JSONBin response structuur is onbekend:", data);
             state.members = [];
+            state.events = [];
+            state.texts = {};
+        } else {
+            // Als het record bestaat, pakken we de data eruit
+            const record = data.record;
+            
+            // Controleer of er members zijn, zo niet check oude spelers, anders leeg
+            if (record.members) {
+                state.members = record.members;
+            } else if (record.players) {
+                // Automatische omzetting van oude spelerslijst naar nieuwe structuur
+                state.members = record.players.map(p => ({
+                    name: p.name,
+                    isActive: true,
+                    tournamentScores: p.wins ? [p.wins] : [],
+                    highestBreak: p.break || 0
+                }));
+            } else {
+                state.members = [];
+            }
+
+            state.events = record.events || [];
+            state.texts = record.texts || {};
+            if (record.auth) state.auth = record.auth;
         }
+
+        updateSyncStatus("✅ Live cloud-data geladen");
+        renderScores();
+        if (typeof renderCalendar === "function") renderCalendar();
         
-        state.events = data.record.events || [];
-        state.texts = data.record.texts || [];
-        // ... eventuele andere velden zoals auth ...
-        
-        renderScores(); // Dit vult je dashboard
-        updateSyncStatus("✓ Live cloud-data geladen");
     } catch (error) {
         console.error("Fout bij laden:", error);
-        updateSyncStatus("❌ Laden mislukt.");
+        updateSyncStatus("❌ Fout bij laden cloud-data");
     }
 }
 
-// Data opslaan en synchroniseren naar de cloud
+
 // Data opslaan en synchroniseren naar de cloud
 async function saveDataToCloud() {
     updateSyncStatus("🔄 Wijzigingen synchroniseren naar de cloud...");
