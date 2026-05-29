@@ -303,37 +303,53 @@ function deleteEvent(idx) {
     }
 }
 
-// Vernieuwde score-renderer (vult zowel de openbare ranglijst als het beheerpaneel)
+// Bereken de som van de beste 3 toernooien
+function calculateBestThreeTotal(scoresArray) {
+    if (!scoresArray || !Array.isArray(scoresArray)) return 0;
+    // Filter eventuele ongeldige invoer, sorteer van HOOG naar LAAG
+    const sortedScores = [...scoresArray].map(Number).filter(n => !isNaN(n)).sort((a, b) => b - a);
+    // Neem de eerste 3 (de hoogste 3) en tel ze op
+    const bestThree = sortedScores.slice(0, 3);
+    return bestThree.reduce((sum, score) => sum + score, 0);
+}
+
+// Ranglijst Renderen (Openbaar & Admin)
 function renderScores() {
     const publicTbody = document.getElementById('scoresTableBody');
     const adminContainer = document.getElementById('adminMembersManagerList');
     
-    // Zorg voor achterwaartse compatibiliteit als de database nog 'players' heet
-    if (!state.members && state.players) {
-        state.members = state.players.map(p => ({
-            name: p.name,
-            isActive: true,
-            tournamentWins: p.wins || 0,
-            highestBreak: p.break || 0
-        }));
-    }
     if (!state.members) state.members = [];
 
-    // 1. Update de OPENBARE ranglijst (alleen actieve leden, gesorteerd op Toernooi Wins)
+    // 1. OPENBARE RANGLIJST BEREKENEN EN TONEN
     if (publicTbody) {
         publicTbody.innerHTML = '';
+        
+        // Filter actieve leden
         const activeMembers = state.members.filter(m => m.isActive !== false);
-        activeMembers.sort((a, b) => b.tournamentWins - a.tournamentWins);
+        
+        // Sorteer op de som van de beste 3 resultaten
+        activeMembers.sort((a, b) => {
+            return calculateBestThreeTotal(b.tournamentScores) - calculateBestThreeTotal(a.tournamentScores);
+        });
 
         if (activeMembers.length === 0) {
             publicTbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-stone-500 italic text-sm">Geen actieve leden gevonden.</td></tr>`;
         } else {
             activeMembers.forEach((member, idx) => {
+                const totaalBesteDrie = calculateBestThreeTotal(member.tournamentScores);
+                // Maak een leesbaar overzichtje van de ruwe scores voor de bezoeker, bijv: (6, 4, 3, 0)
+                const alleScoresStr = member.tournamentScores && member.tournamentScores.length > 0 
+                    ? `(${[...member.tournamentScores].reverse().join(', ')})` 
+                    : '(Nog geen deelnames)';
+
                 publicTbody.innerHTML += `
                     <tr class="hover:bg-stone-800/40 transition border-b border-stone-800/30">
                         <td class="p-4 text-center font-bold text-[#ecd292]">${idx + 1}</td>
-                        <td class="p-4 font-bold text-white">${member.name}</td>
-                        <td class="p-4 text-center text-emerald-400 font-black">${member.tournamentWins}</td>
+                        <td class="p-4 font-bold text-white">
+                            ${member.name} 
+                            <span class="text-[10px] text-stone-500 font-normal block md:inline md:ml-2">${alleScoresStr}</span>
+                        </td>
+                        <td class="p-4 text-center text-emerald-400 font-black text-base">${totaalBesteDrie}</td>
                         <td class="p-4 text-center text-amber-400 font-mono font-bold">${member.highestBreak || 0}</td>
                     </tr>
                 `;
@@ -341,78 +357,140 @@ function renderScores() {
         }
     }
 
-    // 2. Update het ADMIN Ledenbeheer dashboard
+    // 2. ADMIN PANEL LEDENLIJST EN INVOER
     if (adminContainer && state.isLoggedIn) {
         adminContainer.innerHTML = '';
-        
-        // Sorteer alfabetisch op naam voor het beheerpaneel
         const sortedMembers = [...state.members].sort((a,b) => a.name.localeCompare(b.name));
 
         if (sortedMembers.length === 0) {
-            adminContainer.innerHTML = `<p class="text-stone-500 text-xs italic p-2">Er zijn nog geen leden ingeschreven.</p>`;
+            adminContainer.innerHTML = `<p class="text-stone-500 text-xs italic p-2">Er zijn nog geen leden.</p>`;
             return;
         }
 
         sortedMembers.forEach((member) => {
-            // Zoek de echte index in de originele array voor bewerkingen
             const origIdx = state.members.findIndex(m => m.name === member.name);
+            if (!member.tournamentScores) member.tournamentScores = [];
+            
+            const totaalBesteDrie = calculateBestThreeTotal(member.tournamentScores);
+            const geschiedenisTekst = member.tournamentScores.length > 0 ? member.tournamentScores.join(', ') : 'Geen';
 
             adminContainer.innerHTML += `
-                <div class="bg-stone-900 border ${member.isActive ? 'border-stone-800' : 'border-red-900/30 opacity-60'} p-3 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs text-white gap-3 mb-2">
-                    <div class="min-w-0">
+                <div class="bg-stone-900 border ${member.isActive ? 'border-stone-800' : 'border-red-900/30 opacity-60'} p-3 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center text-xs text-white gap-3 mb-2">
+                    <div class="min-w-[120px]">
                         <strong class="text-sm text-white block">${member.name}</strong>
-                        <button onclick="toggleMemberStatus(${origIdx})" class="mt-1 text-[10px] font-bold px-2 py-0.5 rounded ${member.isActive ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-red-950 text-red-400 border border-red-900'} cursor-pointer">
-                            ${member.isActive ? '✓ Actief Lid' : '⏰ Inactief / Gestopt'}
-                        </button>
+                        <span class="text-[10px] text-stone-400 block mt-0.5">Historie: [${geschiedenisTekst}]</span>
+                        <span class="text-[11px] text-[#ecd292] font-bold block mt-1">Totaal (Beste 3): ${totaalBesteDrie} pnt</span>
                     </div>
                     
-                    <div class="flex items-center space-x-4 bg-stone-950 p-2 rounded-lg border border-stone-800 w-full sm:w-auto justify-between sm:justify-start">
-                        <div class="flex items-center space-x-2">
-                            <span class="text-stone-400 font-semibold text-[11px]">Toernooi Wins:</span>
-                            <button onclick="adjustScore(${origIdx}, 'tournamentWins', -1)" class="w-6 h-6 bg-stone-800 hover:bg-stone-700 rounded text-center font-bold text-white cursor-pointer">-</button>
-                            <span class="font-bold text-emerald-400 text-sm min-w-[16px] text-center">${member.tournamentWins}</span>
-                            <button onclick="adjustScore(${origIdx}, 'tournamentWins', 1)" class="w-6 h-6 bg-stone-800 hover:bg-stone-700 rounded text-center font-bold text-white cursor-pointer">+</button>
+                    <div class="flex flex-wrap items-center gap-3 bg-stone-950 p-2 rounded-lg border border-stone-800 w-full md:w-auto">
+                        <div class="flex items-center space-x-1">
+                            <span class="text-stone-400 text-[10px]">Nieuwe Score:</span>
+                            <input type="number" id="newScoreFor_${origIdx}" placeholder="Frames" class="w-14 bg-stone-900 border border-stone-700 rounded px-2 py-1 text-center text-emerald-400 font-bold focus:outline-none">
+                            <button onclick="pushNewTournamentScore(${origIdx})" class="bg-emerald-700 hover:bg-emerald-600 px-2 py-1 rounded font-bold text-white cursor-pointer">Voeg toe</button>
                         </div>
                         
-                        <div class="flex items-center space-x-1">
-                            <span class="text-stone-400 font-semibold text-[11px]">H. Break:</span>
-                            <input type="number" value="${member.highestBreak || 0}" onchange="updateHighestBreak(${origIdx}, this.value)" class="w-14 bg-stone-900 border border-stone-700 rounded px-1 py-0.5 text-center text-amber-400 font-mono font-bold focus:outline-none focus:border-amber-500">
+                        <div class="flex items-center space-x-1 border-l border-stone-800 pl-3">
+                            <span class="text-stone-400 text-[10px]">H. Break:</span>
+                            <input type="number" value="${member.highestBreak || 0}" onchange="updateHighestBreak(${origIdx}, this.value)" class="w-14 bg-stone-900 border border-stone-700 rounded px-1 py-0.5 text-center text-amber-400 font-mono font-bold focus:outline-none">
                         </div>
+                        
+                        <button onclick="clearLastScore(${origIdx})" class="text-red-400 hover:text-red-300 font-semibold text-[10px] border border-red-900/50 px-1.5 py-0.5 rounded bg-red-950/20 cursor-pointer ml-auto">
+                            Reset Last
+                        </button>
                     </div>
 
-                    <button onclick="deleteMember(${origIdx})" class="text-stone-500 hover:text-red-400 p-1 transition cursor-pointer self-end sm:self-center">
-                        <i class="fa-solid fa-trash-can text-sm"></i>
-                    </button>
+                    <div class="flex items-center space-x-2 ml-auto md:ml-0">
+                        <button onclick="toggleMemberStatus(${origIdx})" class="text-[10px] font-bold px-2 py-1 rounded ${member.isActive ? 'bg-stone-800 text-stone-300' : 'bg-red-950 text-red-400'} cursor-pointer">
+                            ${member.isActive ? 'Actief' : 'Inactief'}
+                        </button>
+                        <button onclick="deleteMember(${origIdx})" class="text-stone-500 hover:text-red-400 p-1 cursor-pointer">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
                 </div>
             `;
         });
     }
 }
 
-// Nieuw lid toevoegen
+// Voeg een nieuwe toernooiscore toe aan de reeks van een speler
+function pushNewTournamentScore(idx) {
+    const input = document.getElementById(`newScoreFor_${idx}`);
+    if (!input) return;
+
+    const scoreValue = parseInt(input.value);
+    if (isNaN(scoreValue) || scoreValue < 0) return alert('Vul aub een geldige score in (0 of hoger). If absent, fill 0.');
+
+    if (!state.members[idx].tournamentScores) {
+        state.members[idx].tournamentScores = [];
+    }
+
+    // Voeg de nieuwe score toe aan de speler
+    state.members[idx].tournamentScores.push(scoreValue);
+    
+    input.value = '';
+    renderScores();
+    saveDataToCloud();
+}
+
+// Verwijder de laatst ingevoerde score (foutje herstellen)
+function clearLastScore(idx) {
+    if (state.members[idx] && state.members[idx].tournamentScores && state.members[idx].tournamentScores.length > 0) {
+        if(confirm(`Laatste score (${state.members[idx].tournamentScores[state.members[idx].tournamentScores.length - 1]}) van ${state.members[idx].name} wissen?`)) {
+            state.members[idx].tournamentScores.pop();
+            renderScores();
+            saveDataToCloud();
+        }
+    }
+}
+
+// Nieuw lid registreren
 function addNewMember() {
     const nameInput = document.getElementById('newMemberName');
     const activeInput = document.getElementById('newMemberActive');
     if (!nameInput) return;
 
     const name = nameInput.value.trim();
-    if (!name) return alert('Vul aub een naam in.');
+    if (!name) return alert('Vul een naam in.');
 
-    // Check of lid al bestaat
     const exists = state.members.some(m => m.name.toLowerCase() === name.toLowerCase());
     if (exists) return alert('Dit lid bestaat al!');
 
     state.members.push({
         name: name,
         isActive: activeInput.checked,
-        tournamentWins: 0,
+        tournamentScores: [],
         highestBreak: 0
     });
 
     nameInput.value = '';
     renderScores();
     saveDataToCloud();
-    alert(`${name} is succesvol toegevoegd aan de ledenlijst!`);
+}
+
+function updateHighestBreak(idx, val) {
+    const intVal = parseInt(val);
+    if (state.members[idx] && !isNaN(intVal)) {
+        state.members[idx].highestBreak = Math.max(0, intVal);
+        renderScores();
+        saveDataToCloud();
+    }
+}
+
+function toggleMemberStatus(idx) {
+    if (state.members[idx]) {
+        state.members[idx].isActive = !state.members[idx].isActive;
+        renderScores();
+        saveDataToCloud();
+    }
+}
+
+function deleteMember(idx) {
+    if (state.members[idx] && confirm(`Weet je zeker dat je ${state.members[idx].name} permanent wilt verwijderen?`)) {
+        state.members.splice(idx, 1);
+        renderScores();
+        saveDataToCloud();
+    }
 }
 
 // Plus en Min knoppen logica
