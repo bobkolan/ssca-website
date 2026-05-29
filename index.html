@@ -202,14 +202,41 @@
                 <button onclick="handleLogout()" class="bg-red-700 hover:bg-red-800 px-4 py-2 text-xs uppercase font-bold tracking-wider rounded text-white cursor-pointer">Uitloggen</button>
             </div>
 
-            <div class="grid md:grid-cols-2 gap-6">
-                <div class="bg-stone-900 text-white p-6 rounded-xl border border-stone-700 space-y-3 shadow-xl">
-                    <h3 class="text-md font-bold text-[#ecd292] uppercase border-b border-stone-800 pb-2"><i class="fa-solid fa-plus mr-1"></i> Toernooi Toevoegen</h3>
-                    <input type="text" id="eventTitle" placeholder="Toernooinaam" class="w-full p-2 rounded bg-stone-950 border border-stone-700 text-xs">
-                    <input type="date" id="eventDate" class="w-full p-2 rounded bg-stone-950 border border-stone-700 text-xs text-stone-300">
-                    <input type="text" id="eventStatus" placeholder="Status (bijv. Inschrijving geopend)" class="w-full p-2 rounded bg-stone-950 border border-stone-700 text-xs">
-                    <button onclick="addCalendarEvent()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-4 py-2 rounded text-xs w-full cursor-pointer">Publiceren naar Cloud</button>
+            <!-- AGENDA BEHEER KANTOOR -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Links: Nieuw evenement toevoegen -->
+                <div class="bg-stone-900 text-white p-6 rounded-xl border border-stone-700 space-y-3 shadow-md">
+                    <h3 class="text-md font-bold text-[#ecd292] uppercase border-b border-stone-800 pb-2">
+                        <i class="fa-solid fa-calendar-plus mr-1"></i> Toernooi Toevoegen
+                    </h3>
+                    <div>
+                        <label class="block text-[11px] text-stone-400 mb-0.5 font-semibold">Toernooinaam</label>
+                        <input type="text" id="eventTitle" placeholder="Bijv. Alkmaar Open 2026" class="w-full p-2 rounded bg-stone-950 border border-stone-800 text-white text-sm focus:outline-none focus:border-[#b89753]">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-stone-400 mb-0.5 font-semibold">Datum</label>
+                        <input type="date" id="eventDate" class="w-full p-2 rounded bg-stone-950 border border-stone-800 text-white text-sm focus:outline-none focus:border-[#b89753]">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-stone-400 mb-0.5 font-semibold">Status / Extra info</label>
+                        <input type="text" id="eventStatus" placeholder="Bijv. Inschrijving geopend" class="w-full p-2 rounded bg-stone-950 border border-stone-800 text-white text-sm focus:outline-none focus:border-[#b89753]">
+                    </div>
+                    <button onclick="addCalendarEvent()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 rounded text-sm transition cursor-pointer shadow-md mt-2">
+                        <i class="fa-solid fa-plus mr-1"></i> Voeg toe
+                    </button>
                 </div>
+
+                <!-- Rechts: Direct interactief overzicht om te wissen (pakt 2 kolommen op grote schermen) -->
+                <div class="lg:col-span-2 bg-stone-900 text-white p-6 rounded-xl border border-stone-700 shadow-md flex flex-col">
+                    <h3 class="text-md font-bold text-[#ecd292] uppercase border-b border-stone-800 pb-2 mb-3">
+                        <i class="fa-solid fa-calendar-days mr-1"></i> Huidige Agenda & Wissen
+                    </h3>
+                    <div id="adminCalendarManagerList" class="space-y-2 overflow-y-auto max-h-[240px] pr-2 flex-1">
+                        <!-- Wordt live opgebouwd via JavaScript met prullenbakjes -->
+                        <p class="text-stone-500 text-xs italic">Laden van agenda...</p>
+                    </div>
+                </div>
+            </div>
 
                 <div class="bg-stone-900 text-white p-6 rounded-xl border border-stone-700 space-y-3 shadow-xl">
                     <h3 class="text-md font-bold text-[#ecd292] uppercase border-b border-stone-800 pb-2"><i class="fa-solid fa-user-edit mr-1"></i> Score / Speler Bijwerken</h3>
