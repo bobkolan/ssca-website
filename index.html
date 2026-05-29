@@ -218,9 +218,7 @@
                 <button onclick="handleLogout()" class="bg-red-700 hover:bg-red-800 px-4 py-2 text-xs uppercase font-bold tracking-wider rounded text-white cursor-pointer">Uitloggen</button>
             </div>
 
-            <!-- AGENDA BEHEER KANTOOR -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Links: Nieuw evenement toevoegen -->
                 <div class="bg-stone-900 text-white p-6 rounded-xl border border-stone-700 space-y-3 shadow-md">
                     <h3 class="text-md font-bold text-[#ecd292] uppercase border-b border-stone-800 pb-2">
                         <i class="fa-solid fa-calendar-plus mr-1"></i> Toernooi Toevoegen
@@ -247,50 +245,46 @@
                     </button>
                 </div>
 
-                <!-- Rechts: Direct interactief overzicht om te wissen (pakt 2 kolommen op grote schermen) -->
                 <div class="lg:col-span-2 bg-stone-900 text-white p-6 rounded-xl border border-stone-700 shadow-md flex flex-col">
                     <h3 class="text-md font-bold text-[#ecd292] uppercase border-b border-stone-800 pb-2 mb-3">
                         <i class="fa-solid fa-calendar-days mr-1"></i> Huidige Agenda & Wissen
                     </h3>
                     <div id="adminCalendarManagerList" class="space-y-2 overflow-y-auto max-h-[240px] pr-2 flex-1">
-                        <!-- Wordt live opgebouwd via JavaScript met prullenbakjes -->
                         <p class="text-stone-500 text-xs italic">Laden van agenda...</p>
                     </div>
                 </div>
             </div>
 
-                <div class="bg-stone-900 border border-stone-700 rounded-xl p-6 shadow-xl space-y-3">
-                    <h3 class="text-md font-bold text-[#ecd292] uppercase border-b border-stone-800 pb-2 flex items-center">
-                        <i class="fa-solid fa-users text-[#ecd292] mr-2"></i> Ledenbeheer & Toernooiscores
-                    </h3>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
-                        <div class="space-y-4 bg-stone-950 p-4 rounded-xl border border-stone-800/80">
-                            <h4 class="text-xs font-bold text-[#ecd292] uppercase tracking-wider">Nieuw Lid Inschrijven</h4>
-                            <div>
-                                <label class="block text-[11px] text-stone-400 mb-1 font-semibold">Naam van het lid</label>
-                                <input type="text" id="newMemberName" placeholder="Bijv. Richard" class="w-full bg-stone-900 text-white border border-stone-800 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#b89753]">
-                            </div>
-                            <div class="flex items-center space-x-2 py-1">
-                                <input type="checkbox" id="newMemberActive" checked class="w-4 h-4 accent-emerald-600 rounded cursor-pointer">
-                                <label for="newMemberActive" class="text-[11px] text-stone-300 font-semibold cursor-pointer select-none">Dit lid is actief (verschijnt in ranking)</label>
-                            </div>
-                            <button onclick="addNewMember()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 rounded text-xs transition cursor-pointer shadow-md">
-                                <i class="fa-solid fa-user-plus mr-1"></i> Lid Toevoegen
-                            </button>
-                        </div>
+            <div class="bg-stone-900 border border-stone-700 rounded-xl p-6 shadow-xl space-y-3">
+                <h3 class="text-md font-bold text-[#ecd292] uppercase border-b border-stone-800 pb-2 flex items-center">
+                    <i class="fa-solid fa-users text-[#ecd292] mr-2"></i> Ledenbeheer & Toernooipunten
+                </h3>
                 
-                        <div class="lg:col-span-2 bg-stone-950 p-4 rounded-xl border border-stone-800/80 flex flex-col">
-                            <h4 class="text-xs font-bold text-[#ecd292] uppercase tracking-wider mb-3">Ledenlijst & Toernooistand Wijzigen</h4>
-                            <div id="adminMembersManagerList" class="space-y-2 overflow-y-auto max-h-[250px] pr-2 flex-1">
-                                <p class="text-stone-500 text-xs italic">Laden van ledenadministratie...</p>
-                            </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
+                    <div class="space-y-4 bg-stone-950 p-4 rounded-xl border border-stone-800/80">
+                        <h4 class="text-xs font-bold text-[#ecd292] uppercase tracking-wider">Nieuw Lid Inschrijven</h4>
+                        <div>
+                            <label class="block text-[11px] text-stone-400 mb-1 font-semibold">Naam van het lid</label>
+                            <input type="text" id="newMemberName" placeholder="Bijv. Dirk" class="w-full bg-stone-900 text-white border border-stone-800 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#b89753]">
+                        </div>
+                        <div class="flex items-center space-x-2 py-1">
+                            <input type="checkbox" id="newMemberActive" checked class="w-4 h-4 accent-emerald-600 rounded cursor-pointer">
+                            <label for="newMemberActive" class="text-[11px] text-stone-300 font-semibold cursor-pointer select-none">Dit lid is actief</label>
+                        </div>
+                        <button onclick="addNewMember()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 rounded text-xs transition cursor-pointer shadow-md">
+                            <i class="fa-solid fa-user-plus mr-1"></i> Lid Toevoegen
+                        </button>
+                    </div>
+
+                    <div class="lg:col-span-2 bg-stone-950 p-4 rounded-xl border border-stone-800/80 flex flex-col">
+                        <h4 class="text-xs font-bold text-[#ecd292] uppercase tracking-wider mb-3">Toernooiscores invoeren (Beste 3 tellen)</h4>
+                        <div id="adminMembersManagerList" class="space-y-2 overflow-y-auto max-h-[300px] pr-2 flex-1">
+                            <p class="text-stone-500 text-xs italic">Laden van ledenadministratie...</p>
                         </div>
                     </div>
                 </div>
+            </div>
         </section>
-
-    </main>
 
     <!-- FOOTER -->
     <footer class="bg-[#0a2316] text-[#ecd292]/60 py-6 border-t-2 border-[#b89753] mt-auto">
