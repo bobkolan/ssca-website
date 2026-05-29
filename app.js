@@ -403,9 +403,11 @@ function calculateBestThreeTotal(scoresArray) {
 // Ranglijst Renderen (Openbaar & Admin)
 function renderScores() {
     const publicTbody = document.getElementById('scoresTableBody');
-    const adminContainer = document.getElementById('adminMembersManagerList');
     
-    // Altijd zorgen dat state.members een geldige array is
+    // We zoeken nu naar beide mogelijke admin containers in de HTML
+    const adminContainer1 = document.getElementById('adminMembersManagerList');
+    const adminContainer2 = document.getElementById('realAdminMembersManagerList');
+    
     if (!state.members || !Array.isArray(state.members)) {
         state.members = [];
     }
@@ -444,59 +446,66 @@ function renderScores() {
         }
     }
 
-    // VEILIGHEID: Als we niet ingelogd zijn of de container is er niet, stop hier.
-    if (!adminContainer || !state.isLoggedIn) return;
+    // 2. ADMIN PANELEN VULLEN
+    // Functie om de HTML-kaarten voor de admin te genereren
+    function generateAdminHTML() {
+        const sortedMembers = [...state.members].sort((a,b) => a.name.localeCompare(b.name));
+        if (sortedMembers.length === 0) {
+            return `<p class="text-stone-500 text-xs italic p-2">Er zijn noch geen leden. Voeg hier links een lid toe!</p>`;
+        }
+        
+        let html = '';
+        sortedMembers.forEach((member) => {
+            const origIdx = state.members.findIndex(m => m.name === member.name);
+            const tScores = member.tournamentScores || [];
+            const totaalBesteDrie = calculateBestThreeTotal(tScores);
+            const geschiedenisTekst = tScores.length > 0 ? tScores.join(', ') : 'Geen';
 
-    adminContainer.innerHTML = '';
-    const sortedMembers = [...state.members].sort((a,b) => a.name.localeCompare(b.name));
+            html += `
+                <div class="bg-stone-900 border ${member.isActive !== false ? 'border-stone-800' : 'border-red-900/30 opacity-60'} p-3 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center text-xs text-white gap-3 mb-2">
+                    <div class="min-w-[120px] text-left">
+                        <strong class="text-sm text-white block">${member.name}</strong>
+                        <span class="text-[10px] text-stone-400 block mt-0.5">Historie: [${geschiedenisTekst}]</span>
+                        <span class="text-[11px] text-[#ecd292] font-bold block mt-1">Totaal (Beste 3): ${totaalBesteDrie} pnt</span>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-3 bg-stone-950 p-2 rounded-lg border border-stone-800 w-full md:w-auto">
+                        <div class="flex items-center space-x-1">
+                            <span class="text-stone-400 text-[10px]">Nieuwe Score:</span>
+                            <input type="number" id="newScoreFor_${origIdx}" placeholder="Frames" class="w-14 bg-stone-900 border border-stone-700 rounded px-2 py-1 text-center text-emerald-400 font-bold focus:outline-none text-xs">
+                            <button onclick="pushNewTournamentScore(${origIdx})" class="bg-emerald-700 hover:bg-emerald-600 px-2 py-1 rounded font-bold text-white cursor-pointer text-[11px]">Voeg toe</button>
+                        </div>
+                        
+                        <div class="flex items-center space-x-1 border-l border-stone-800 pl-3">
+                            <span class="text-stone-400 text-[10px]">H. Break:</span>
+                            <input type="number" value="${member.highestBreak || 0}" onchange="updateHighestBreak(${origIdx}, this.value)" class="w-14 bg-stone-900 border border-stone-700 rounded px-1 py-0.5 text-center text-amber-400 font-mono font-bold focus:outline-none text-xs">
+                        </div>
+                        
+                        <button onclick="clearLastScore(${origIdx})" class="text-red-400 hover:text-red-300 font-semibold text-[10px] border border-red-900/50 px-1.5 py-0.5 rounded bg-red-950/20 cursor-pointer ml-auto">
+                            Reset Last
+                        </button>
+                    </div>
 
-    if (sortedMembers.length === 0) {
-        adminContainer.innerHTML = `<p class="text-stone-500 text-xs italic p-2">Er zijn nog geen leden. Voeg hier links een lid toe!</p>`;
-        return;
+                    <div class="flex items-center space-x-2 ml-auto md:ml-0">
+                        <button onclick="toggleMemberStatus(${origIdx})" class="text-[10px] font-bold px-2 py-1 rounded ${member.isActive !== false ? 'bg-stone-800 text-stone-300' : 'bg-red-950 text-red-400'} cursor-pointer">
+                            ${member.isActive !== false ? 'Actief' : 'Inactief'}
+                        </button>
+                        <button onclick="deleteMember(${origIdx})" class="text-stone-500 hover:text-red-400 p-1 cursor-pointer">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        return html;
     }
 
-    sortedMembers.forEach((member) => {
-        const origIdx = state.members.findIndex(m => m.name === member.name);
-        const tScores = member.tournamentScores || [];
-        const totaalBesteDrie = calculateBestThreeTotal(tScores);
-        const geschiedenisTekst = tScores.length > 0 ? tScores.join(', ') : 'Geen';
-
-        adminContainer.innerHTML += `
-            <div class="bg-stone-900 border ${member.isActive !== false ? 'border-stone-800' : 'border-red-900/30 opacity-60'} p-3 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center text-xs text-white gap-3 mb-2">
-                <div class="min-w-[120px] text-left">
-                    <strong class="text-sm text-white block">${member.name}</strong>
-                    <span class="text-[10px] text-stone-400 block mt-0.5">Historie: [${geschiedenisTekst}]</span>
-                    <span class="text-[11px] text-[#ecd292] font-bold block mt-1">Totaal (Beste 3): ${totaalBesteDrie} pnt</span>
-                </div>
-                
-                <div class="flex flex-wrap items-center gap-3 bg-stone-950 p-2 rounded-lg border border-stone-800 w-full md:w-auto">
-                    <div class="flex items-center space-x-1">
-                        <span class="text-stone-400 text-[10px]">Nieuwe Score:</span>
-                        <input type="number" id="newScoreFor_${origIdx}" placeholder="Frames" class="w-14 bg-stone-900 border border-stone-700 rounded px-2 py-1 text-center text-emerald-400 font-bold focus:outline-none text-xs">
-                        <button onclick="pushNewTournamentScore(${origIdx})" class="bg-emerald-700 hover:bg-emerald-600 px-2 py-1 rounded font-bold text-white cursor-pointer text-[11px]">Voeg toe</button>
-                    </div>
-                    
-                    <div class="flex items-center space-x-1 border-l border-stone-800 pl-3">
-                        <span class="text-stone-400 text-[10px]">H. Break:</span>
-                        <input type="number" value="${member.highestBreak || 0}" onchange="updateHighestBreak(${origIdx}, this.value)" class="w-14 bg-stone-900 border border-stone-700 rounded px-1 py-0.5 text-center text-amber-400 font-mono font-bold focus:outline-none text-xs">
-                    </div>
-                    
-                    <button onclick="clearLastScore(${origIdx})" class="text-red-400 hover:text-red-300 font-semibold text-[10px] border border-red-900/50 px-1.5 py-0.5 rounded bg-red-950/20 cursor-pointer ml-auto">
-                        Reset Last
-                    </button>
-                </div>
-
-                <div class="flex items-center space-x-2 ml-auto md:ml-0">
-                    <button onclick="toggleMemberStatus(${origIdx})" class="text-[10px] font-bold px-2 py-1 rounded ${member.isActive !== false ? 'bg-stone-800 text-stone-300' : 'bg-red-950 text-red-400'} cursor-pointer">
-                        ${member.isActive !== false ? 'Actief' : 'Inactief'}
-                    </button>
-                    <button onclick="deleteMember(${origIdx})" class="text-stone-500 hover:text-red-400 p-1 cursor-pointer">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-    });
+    // Toon de lijst alleen in de admin-vensters als de gebruiker daadwerkelijk is ingelogd
+    if (state.isLoggedIn) {
+        const adminHTML = generateAdminHTML();
+        if (adminContainer1) adminContainer1.innerHTML = adminHTML;
+        if (adminContainer2) adminContainer2.innerHTML = adminHTML;
+    }
 }
 
 // Nieuw lid registreren
