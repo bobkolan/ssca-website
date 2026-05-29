@@ -167,6 +167,43 @@ function toggleMobileMenu() {
     document.getElementById('mobileMenu').classList.toggle('hidden');
 }
 
+// Teksten op de hoofdpagina en overige secties zetten
+function renderTexts() {
+    // 1. Home / Welkom Sectie
+    const homeTitleEl = document.getElementById('home_title');
+    const homeTextEl = document.getElementById('home_text');
+    
+    if (homeTitleEl && state.texts.home_title) {
+        homeTitleEl.innerText = state.texts.home_title;
+    }
+    if (homeTextEl && state.texts.home_text) {
+        homeTextEl.innerHTML = state.texts.home_text; // .innerHTML omdat er <p> tags in zitten
+    }
+
+    // 2. Over Ons Sectie
+    const aboutTitleEl = document.getElementById('about_title');
+    const aboutTextEl = document.getElementById('about_text');
+    
+    if (aboutTitleEl && state.texts.about_title) {
+        aboutTitleEl.innerText = state.texts.about_title;
+    }
+    if (aboutTextEl && state.texts.about_text) {
+        aboutTextEl.innerHTML = state.texts.about_text;
+    }
+
+    // 3. Contact Sectie
+    const contactInfoEl = document.getElementById('contact_info');
+    const contactHoursEl = document.getElementById('contact_hours');
+    
+    if (contactInfoEl && state.texts.contact_info) {
+        contactInfoEl.innerHTML = state.texts.contact_info;
+    }
+    if (contactHoursEl && state.texts.contact_hours) {
+        contactHoursEl.innerHTML = state.texts.contact_hours;
+    }
+}
+
+
 // ==========================================
 // CMS BEHEERDERSMODUS LOGICA
 // ==========================================
