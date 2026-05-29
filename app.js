@@ -264,21 +264,57 @@ function handleLogout() {
     renderScores();
 }
 
-function addCalendarEvent() {
-    const title = document.getElementById('eventTitle').value.trim();
-    const date = document.getElementById('eventDate').value;
-    const status = document.getElementById('eventStatus').value.trim();
+function renderCalendar() {
+    const publicContainer = document.getElementById('calendarList');
+    const adminContainer = document.getElementById('adminCalendarManagerList');
+    
+    if (!publicContainer) return;
+    
+    // Leegmaken voor schone her-render
+    publicContainer.innerHTML = '';
+    if (adminContainer) adminContainer.innerHTML = '';
+    
+    // Sorteer data chronologisch (dichtstbijzijnde datum eerst)
+    state.events.sort((a,b) => new Date(a.date) - new Date(b.date));
 
-    if(!title || !date || !status) return alert('Vul alle velden in.');
-    
-    state.events.push({ title, date, status });
-    renderCalendar();
-    saveDataToCloud();
-    
-    document.getElementById('eventTitle').value = '';
-    document.getElementById('eventDate').value = '';
-    document.getElementById('eventStatus').value = '';
-    alert('Toernooi toegevoegd en live gezet!');
+    if (state.events.length === 0) {
+        const emptyMsg = `<p class="text-stone-500 text-xs italic p-2">Er staan momenteel geen evenementen op de planning.</p>`;
+        publicContainer.innerHTML = emptyMsg;
+        if (adminContainer) adminContainer.innerHTML = emptyMsg;
+        return;
+    }
+
+    state.events.forEach((ev, idx) => {
+        // Formateer datum naar nette Nederlandse tekst (bijv. 12 juni 2026)
+        const dateStr = new Date(ev.date).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
+        
+        // 1. Bouw de OPENBARE agenda kaart op
+        publicContainer.innerHTML += `
+            <div class="bg-stone-900 text-white p-4 rounded-xl border border-[#b89753] flex justify-between items-center shadow-lg">
+                <div>
+                    <span class="text-[10px] font-bold text-[#ecd292] uppercase tracking-widest">${dateStr}</span>
+                    <h4 class="text-base font-black mt-0.5">${ev.title}</h4>
+                    <p class="text-xs text-stone-400">${ev.status}</p>
+                </div>
+            </div>
+        `;
+
+        // 2. Bouw de ADMIN agenda manager regel op (alleen als de admin is ingelogd)
+        if (state.isLoggedIn && adminContainer) {
+            adminContainer.innerHTML += `
+                <div class="bg-stone-900 border border-stone-800 p-3 rounded-lg flex justify-between items-center text-xs text-white">
+                    <div class="flex-1 min-w-0 pr-4">
+                        <span class="text-[#ecd292] font-mono font-bold block">${ev.date}</span>
+                        <strong class="truncate block text-sm">${ev.title}</strong>
+                        <span class="text-stone-400 truncate block">${ev.status}</span>
+                    </div>
+                    <button onclick="deleteEvent(${idx})" class="bg-red-950/40 hover:bg-red-900 text-red-400 hover:text-white border border-red-900/50 px-3 py-1.5 rounded-md font-bold transition cursor-pointer flex items-center space-x-1 whitespace-nowrap">
+                        <i class="fa-solid fa-trash-can text-[11px]"></i> <span>Wis</span>
+                    </button>
+                </div>
+            `;
+        }
+    });
 }
 
 function deleteEvent(idx) {
