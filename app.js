@@ -81,6 +81,7 @@ async function loadDataFromCloud() {
 }
 
 // Data opslaan en synchroniseren naar de cloud
+// Data opslaan en synchroniseren naar de cloud
 async function saveDataToCloud() {
     updateSyncStatus("🔄 Wijzigingen synchroniseren naar de cloud...");
     try {
@@ -94,16 +95,15 @@ async function saveDataToCloud() {
                 auth: state.auth,
                 texts: state.texts,
                 events: state.events,
-                members: state.members
+                members: state.members || []
             })
         });
 
-        if (!response.ok) throw new Error("Fout tijdens het uploaden.");
-        updateSyncStatus("✓ Cloud succesvol bijgewerkt!");
+        if (!response.ok) throw new Error("Cloud synchronisatie mislukt.");
+        updateSyncStatus("✅ Live cloud-data geladen");
     } catch (error) {
-        console.error("Fout bij opslaan:", error);
-        updateSyncStatus("❌ Synchronisatie mislukt!");
-        alert("Fout bij het opslaan naar de cloud.");
+        console.error(error);
+        updateSyncStatus("❌ Synchronisatiefout!");
     }
 }
 
